@@ -1,6 +1,7 @@
 from flask import request, jsonify, Blueprint
 from werkzeug.utils import secure_filename
 from andes.services import document_service
+from andes.config import SERVER_URL
 
 # create blueprints
 document_blueprint = Blueprint('document', __name__)
@@ -27,7 +28,14 @@ def upload_file():
 
         return jsonify({
             'message': 'File has been uploaded successfully',
-            'endpoint': f'/document/{doc.id}'
+            'id': doc.id,
+            'url': f'{SERVER_URL}/document/{doc.id}'
         }), 200
     else:
         return jsonify({'error': 'Allowed file types are .pdf only'}), 400
+
+
+@document_blueprint.route('/document/<id>', methods=['GET'])
+def get_document(id):
+    doc = document_service.get_document(id)
+    return jsonify(doc.to_dict()), 200

@@ -21,3 +21,11 @@ def save_file(doc: Document, file):
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     file.save(filepath)
     return filepath
+
+
+def get_document(id: str):
+    """
+    get Document sqlalchemy model object
+    """
+    doc = Document.query.get(id)
+    return doc

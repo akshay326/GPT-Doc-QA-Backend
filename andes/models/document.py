@@ -30,6 +30,6 @@ class Document(db.Model):
             'id': self.id,
             'filename': self.filename,
             'index_path': self.index_path,
-            'metadata': self._metadata
+            'page_count': self.page_count,
+            'info': self.info
         }
-
