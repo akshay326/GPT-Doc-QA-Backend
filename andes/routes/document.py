@@ -1,9 +1,6 @@
-import os
 from flask import request, jsonify, Blueprint
 from werkzeug.utils import secure_filename
-from pypdf import PdfReader
-from andes.models import Document
-from andes import UPLOAD_DIRECTORY
+from andes.services import document_service
 
 # create blueprints
 document_blueprint = Blueprint('document', __name__)
@@ -21,16 +18,16 @@ def upload_file():
 
     if file and file.filename.lower().endswith('.pdf'):
         filename = secure_filename(file.filename)
-        filepath = os.path.join(UPLOAD_DIRECTORY, filename)
-        file.save(filepath)
 
-        reader = PdfReader(filepath)
-        number_of_pages = len(reader.pages)
+        # create an empty document object in DB
+        doc = document_service.create_document(filename)
 
-        # document = Document(name=filename, pages=number_of_pages)
-        # document_service.add_document(document)
+        # save the file to the uploads folder
+        document_service.save_file(doc, file)
 
-        return jsonify({'message': 'File has been uploaded and processed successfully'}), 200
-
+        return jsonify({
+            'message': 'File has been uploaded successfully',
+            'endpoint': f'/document/{doc.id}'
+        }), 200
     else:
         return jsonify({'error': 'Allowed file types are .pdf only'}), 400
