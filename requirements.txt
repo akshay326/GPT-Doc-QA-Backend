@@ -1,1 +1,6 @@
 flask==2.3.2
+flask_cors==3.0.10
+pypdf==3.9.1
+langchain==0.0.198
+flask_sqlalchemy==3.0.3
+sqlalchemy_utils==0.41.1
