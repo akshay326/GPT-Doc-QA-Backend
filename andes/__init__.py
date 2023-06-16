@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask
 from flask_cors import CORS
 from .config import UPLOAD_DIRECTORY, DB_PATH
 from .models import database as db

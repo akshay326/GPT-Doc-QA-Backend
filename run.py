@@ -1,5 +1,8 @@
+import logging
 from andes import create_app
 from flask import jsonify
+
+logging.getLogger().setLevel(logging.INFO)
 
 # create app
 app = create_app()

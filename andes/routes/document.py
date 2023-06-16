@@ -26,6 +26,9 @@ def upload_file():
         # save the file to the uploads folder
         document_service.save_file(doc, file)
 
+        # create a langchain index for the document
+        document_service.enqueue_index_gen(doc)
+
         return jsonify({
             'message': 'File has been uploaded successfully',
             'id': doc.id,

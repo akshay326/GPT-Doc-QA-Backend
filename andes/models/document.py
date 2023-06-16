@@ -8,7 +8,6 @@ def generate_uuid():
 class Document(db.Model):
     id = db.Column(db.String(), primary_key=True, default=generate_uuid)
     filename = db.Column(db.String(), nullable=False)
-    index_path = db.Column(db.String(), nullable=True)
     page_count = db.Column(db.Integer, nullable=True)
     info = db.Column(db.JSON, default={})
 
@@ -29,7 +28,6 @@ class Document(db.Model):
         return {
             'id': self.id,
             'filename': self.filename,
-            'index_path': self.index_path,
             'page_count': self.page_count,
             'info': self.info
         }
