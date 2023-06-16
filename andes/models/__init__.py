@@ -4,4 +4,4 @@ from flask_sqlalchemy import SQLAlchemy
 database = SQLAlchemy()
 
 # import models
-from .document import Document
+from .document import Document, DocumentChatHistory

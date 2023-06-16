@@ -4,14 +4,15 @@ from pypdf import PdfReader
 from rq import Retry
 
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.llms import OpenAIChat
+from langchain.llms import OpenAI
 from langchain.vectorstores import FAISS
-from langchain.chains import VectorDBQA
+from langchain.memory import ConversationBufferMemory
+from langchain.chains import ConversationalRetrievalChain
 from langchain.embeddings.openai import OpenAIEmbeddings
 
-from andes.models import Document
+from andes.models import Document, DocumentChatHistory
 from andes import UPLOAD_DIRECTORY
-from andes.services.serialization import pickle_dump
+from andes.services.serialization import pickle_dump, pickle_load
 from andes.services.rq import QUEUES
 
 
@@ -68,7 +69,7 @@ def create_index(doc: Document):
     create a langchain index for the document
     """
     logging.info(f"Started creating index for {doc.filename}")
-    
+
     filepath = os.path.join(UPLOAD_DIRECTORY, doc.id, doc.filename)
     doc_splits = _split_pdf(filepath)
 
@@ -84,7 +85,50 @@ def create_index(doc: Document):
 
 def enqueue_index_gen(doc: Document):
     """
-    enqueue the index generation task
+    enqueue the index generation task into a redis queue
     """
     QUEUES['index_gen'].enqueue(create_index, doc, retry=Retry(max=3))
     logging.info(f"Enqueued index generation for {doc.filename}")
+
+
+def chat(doc: Document, message: str) -> str:
+    # query openai on the langchain index
+
+    # sanity checks
+    if not os.path.exists(os.path.join(UPLOAD_DIRECTORY, doc.id, 'index.pkl')):
+        raise ValueError("Index does not exist for this document")
+    
+    assert message is not None, "Message cannot be empty"
+
+    # load the index from disk
+    index_path = os.path.join(UPLOAD_DIRECTORY, doc.id, 'index.pkl')
+    index = pickle_load(index_path)
+
+    # load the chat history from document
+    chat_history = doc.chat_history()
+
+    # format the history
+    chat_history = [
+        (
+        chat['question'],
+        chat['answer']
+        ) for chat in chat_history
+    ]
+
+    qa = ConversationalRetrievalChain.from_llm(
+        OpenAI(temperature=0), 
+        index.as_retriever()
+    )
+    response = qa({
+        "question": message, 
+        "chat_history": chat_history
+    })
+
+    # save the chat history
+    DocumentChatHistory(
+        document_id = doc.id,
+        question = message,
+        answer = response['answer']
+    ).save()
+
+    return response['answer']

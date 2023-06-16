@@ -42,3 +42,19 @@ def upload_file():
 def get_document(id):
     doc = document_service.get_document(id)
     return jsonify(doc.to_dict()), 200
+
+
+@document_blueprint.route('/document/<id>/chat_history', methods=['GET'])
+def document_chat_history(id):
+    doc = document_service.get_document(id)
+    chat_history = doc.chat_history()
+    return jsonify(chat_history), 200
+
+
+@document_blueprint.route('/document/<id>/chat', methods=['POST'])
+def document_chat(id):
+    # get message from request
+    message = request.json['message']
+    doc = document_service.get_document(id)
+    response = document_service.chat(doc, message)
+    return jsonify(response), 200
