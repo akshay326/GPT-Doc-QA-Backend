@@ -8,3 +8,5 @@ openai==0.27.8
 tiktoken==0.4.0
 faiss-cpu==1.7.4
 rq==1.15.0
+flask_httpauth==4.8.0
+python-dotenv==1.0.0

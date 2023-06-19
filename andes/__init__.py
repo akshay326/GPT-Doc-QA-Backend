@@ -1,7 +1,14 @@
+import os
+from dotenv import load_dotenv
 from flask import Flask
 from flask_cors import CORS
-from .config import UPLOAD_DIRECTORY, DB_PATH
 from .models import database as db
+
+# Load the .env file
+load_dotenv()
+
+UPLOAD_DIRECTORY = os.getenv('UPLOAD_DIRECTORY')
+DB_PATH = os.getenv('DB_PATH')
 
 # init app
 def create_app():

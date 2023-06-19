@@ -1,8 +1,9 @@
+import os
 from flask import request, jsonify, Blueprint
 from werkzeug.utils import secure_filename
 from andes.services import document_service
-from andes.config import SERVER_URL
 
+SERVER_URL = os.getenv('SERVER_URL', 'http://localhost:8000')
 # create blueprints
 document_blueprint = Blueprint('document', __name__)
 
