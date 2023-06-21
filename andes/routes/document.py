@@ -3,6 +3,7 @@ from flask import request, jsonify, Blueprint
 from werkzeug.utils import secure_filename
 from andes.services import document_service
 from andes.services.auth import auth
+from andes.utils.wrappers import track_requests
 
 SERVER_URL = os.getenv('SERVER_URL', 'http://localhost:8000')
 # create blueprints
@@ -11,6 +12,7 @@ document_blueprint = Blueprint('document', __name__)
 
 @document_blueprint.route('/document/upload', methods=['POST'])
 @auth.login_required
+@track_requests
 def upload_file():
     if 'file' not in request.files:
         return jsonify({'error': 'No file part in the request'}), 400
@@ -43,6 +45,7 @@ def upload_file():
 
 @document_blueprint.route('/document/<id>', methods=['GET'])
 @auth.login_required
+@track_requests
 def get_document(id):
     doc = document_service.get_document(id)
     return jsonify(doc.to_dict()), 200
@@ -50,6 +53,7 @@ def get_document(id):
 
 @document_blueprint.route('/document/<id>/chat_history', methods=['GET'])
 @auth.login_required
+@track_requests
 def document_chat_history(id):
     doc = document_service.get_document(id)
     chat_history = doc.chat_history()
@@ -58,6 +62,7 @@ def document_chat_history(id):
 
 @document_blueprint.route('/document/<id>/chat', methods=['POST'])
 @auth.login_required
+@track_requests
 def document_chat(id):
     # get message from request
     message = request.json['message']

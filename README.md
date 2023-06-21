@@ -13,3 +13,13 @@
     sudo apt-get install redis-server
 - start redis CLI / does not seems to work
     rq worker --with-scheduler index_gen
+
+
+## Setup Graphana and Prometheus
+- install graphana
+    - https://grafana.com/grafana/download
+- go to http://localhost:3000
+- login with admin/admin
+- add data source (prometheus)
+    - http://localhost:9090
+- add dashboard
