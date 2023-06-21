@@ -1,6 +1,7 @@
 # andes-backend
 - runs on python 3.10.9
 - http://13.52.22.190:8000/test
+- keys saved at `/home/ubuntu/andes-backend/.env`
 
 
 ## Starting Up

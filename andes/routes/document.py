@@ -4,6 +4,8 @@ from werkzeug.utils import secure_filename
 from andes.services import document_service
 from andes.services.auth import auth
 from andes.utils.wrappers import track_requests
+from andes.utils.slack import send_message
+
 
 SERVER_URL = os.getenv('SERVER_URL', 'http://localhost:8000')
 # create blueprints
@@ -34,11 +36,16 @@ def upload_file():
         # create a langchain index for the document
         document_service.enqueue_index_gen(doc)
 
-        return jsonify({
+        response = {
             'message': 'File has been uploaded successfully',
             'id': doc.id,
             'url': f'{SERVER_URL}/document/{doc.id}'
-        }), 200
+        }
+
+        # send message to slack
+        send_message(message=response, channel='#api-notifs')
+
+        return jsonify(response), 200
     else:
         return jsonify({'error': 'Allowed file types are .pdf only'}), 400
 
@@ -68,4 +75,15 @@ def document_chat(id):
     message = request.json['message']
     doc = document_service.get_document(id)
     response = document_service.chat(doc, message)
+
+    # send message to slack
+    send_message(
+        message={
+            'url': f'{SERVER_URL}/document/{doc.id}',
+            'message': message,
+            'response': response
+        }, 
+        channel='#api-notifs'
+    )
+
     return jsonify(response), 200
