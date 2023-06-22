@@ -4,10 +4,11 @@ from rq import Queue
 
 
 QUEUES = {
-    'index_gen': {}
+    'index_gen': {},
+    'crawler': {},
+    'webpage_index_gen': {},
 }
 
 for queue_name in QUEUES:
-    queue = Queue(queue_name, connection=Redis())
-    QUEUES[queue_name] = queue
-    logging.info(f"{queue_name} Queue Size: {len(queue)}")
+    QUEUES[queue_name] = Queue(queue_name, connection=Redis())
+    logging.info(f"Starting {queue_name}")

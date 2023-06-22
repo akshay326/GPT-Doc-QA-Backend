@@ -4,19 +4,19 @@ import logging
 from flask import Flask, request
 from flask_cors import CORS
 from flask_restx import Api
-from andes.models import database as db
 from andes.utils.config import UPLOAD_DIRECTORY, DB_PATH
-from andes.routes.document import ns as document_ns
+from flask_sqlalchemy import SQLAlchemy
+
 
 # set logging level
 logging.getLogger().setLevel(logging.INFO)
 
+# initialize database
+database = SQLAlchemy()
+
 app = Flask(__name__)
 CORS(app)
 api = Api(app, version='1.0', title='Andes API', description='Andes API')
-
-# register all namespaces for the API
-api.add_namespace(document_ns)
 
 # store files in uploads folder
 app.config['UPLOAD_FOLDER'] = UPLOAD_DIRECTORY
@@ -26,8 +26,14 @@ app.config['SQLALCHEMY_DATABASE_URI'] = DB_PATH
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 with app.app_context():
-    db.init_app(app)
-    db.create_all()
+    # register all namespaces for the API
+    from andes.routes.document import ns as document_ns
+    from andes.routes.webpage import ns as webpage_ns
+    api.add_namespace(document_ns)
+    api.add_namespace(webpage_ns)
+
+    database.init_app(app)
+    database.create_all()
 
 @app.before_request
 def start_timer():
