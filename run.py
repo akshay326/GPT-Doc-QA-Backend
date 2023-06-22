@@ -3,16 +3,18 @@ from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from prometheus_client import make_wsgi_app
 
 from andes import create_app
-from andes.utils.wrappers import track_requests
 
 # create app
 app = create_app()
 
+from flask_restx import Resource, Api
+api = Api(app)
+
 # simple test route
-@app.route('/test', methods=['GET'])
-@track_requests
-def test():
-    return jsonify({'message': 'success version 1'})
+@api.route('/test')
+class Test(Resource):
+    def get(self):
+        return jsonify({'message': 'success version 1'})
 
 # Add prometheus wsgi middleware to route /metrics requests
 app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {

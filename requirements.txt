@@ -12,3 +12,4 @@ flask_httpauth==4.8.0
 python-dotenv==1.0.0
 prometheus-client==0.17.0
 slack_sdk==3.21.3
+flask_restx==1.1.0
