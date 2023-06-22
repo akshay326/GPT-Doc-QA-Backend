@@ -75,6 +75,6 @@ class DocumentChatHistory(db.Model):
             'id': self.id,
             'question': self.question,
             'answer': self.answer,
-            'created_at': self.created_at
+            'created_at': str(self.created_at)
         }
     

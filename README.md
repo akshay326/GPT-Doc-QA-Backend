@@ -4,6 +4,10 @@
 - keys saved at `/home/ubuntu/andes-backend/.env`
 
 
+## port mapping
+- 8000: server
+- 3000: graphana
+
 ## Starting Up
 - python run.py
 - python run_workers.py

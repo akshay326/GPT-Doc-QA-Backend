@@ -6,12 +6,11 @@ from rq import Retry
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.llms import OpenAI
 from langchain.vectorstores import FAISS
-from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
 from langchain.embeddings.openai import OpenAIEmbeddings
 
 from andes.models import Document, DocumentChatHistory
-from andes import UPLOAD_DIRECTORY
+from andes.utils.config import UPLOAD_DIRECTORY
 from andes.services.serialization import pickle_dump, pickle_load
 from andes.services.rq import QUEUES
 

@@ -1,14 +1,8 @@
 from flask import jsonify
+from flask_restx import Resource
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from prometheus_client import make_wsgi_app
-
-from andes import create_app
-
-# create app
-app = create_app()
-
-from flask_restx import Resource, Api
-api = Api(app)
+from andes import app, api
 
 # simple test route
 @api.route('/test')
