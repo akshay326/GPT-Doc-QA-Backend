@@ -6,6 +6,7 @@ from andes.services.auth import auth
 from andes.utils.wrappers import track_requests
 from andes.utils.slack import send_message
 from andes.utils.config import SERVER_URL
+from andes.schemas.extraction_config import ExtractionConfigSchema
 
 ns = Namespace(
     'document', 
@@ -26,30 +27,30 @@ class Document(Resource):
         if file.filename == '':
             return jsonify({'error': 'No file selected for uploading'}), 400
 
-        if file and file.filename.lower().endswith('.pdf'):
-            filename = secure_filename(file.filename)
+        filename = secure_filename(file.filename)
 
+        try:
             # create an empty document object in DB
             doc = document_service.create_document(filename)
+        except Exception as e:
+            return {'error': str(e)}, 400
 
-            # save the file to the uploads folder
-            document_service.save_file(doc, file)
+        # save the file to the uploads folder
+        document_service.save_file(doc, file)
 
-            # create a langchain index for the document
-            document_service.enqueue_index_gen(doc)
+        # create a langchain index for the document
+        document_service.enqueue_index_gen(doc)
 
-            response = {
-                'message': 'File has been uploaded successfully',
-                'id': doc.id,
-                'url': f'{SERVER_URL}/document/{doc.id}'
-            }
+        response = {
+            'message': 'File has been uploaded successfully',
+            'id': doc.id,
+            'url': f'{SERVER_URL}/document/{doc.id}'
+        }
 
-            # send message to slack
-            send_message(message=response, channel='#api-notifs')
+        # send message to slack
+        send_message(message=response, channel='#api-notifs')
 
-            return response
-        else:
-            return {'error': 'Allowed file types are .pdf only'}
+        return response
 
 
 @ns.route('/<string:id>')
@@ -76,16 +77,33 @@ class DocumentChat(Resource):
         # get message from request
         message = request.json['message']
         doc = document_service.get_document(id)
-        response = document_service.chat(doc, message)
+        answer = document_service.chat(doc, message)
 
         # send message to slack
         send_message(
             message={
+                'action': 'chat',
                 'url': f'{SERVER_URL}/document/{doc.id}',
-                'message': message,
-                'response': response
+                'question': message,
+                'answer': answer
             }, 
             channel='#api-notifs'
         )
 
-        return response
+        return answer
+
+
+@ns.route('/<string:id>/extract')
+class DocumentExtract(Resource):
+    @auth.login_required
+    @track_requests
+    def post(self, id):
+        # validate extraction config as request json
+        try:
+            ExtractionConfigSchema.validate(request.json)
+            config = request.json
+            doc = document_service.get_document(id)
+            response = document_service.extract(doc, config)
+            return response
+        except Exception as e:
+            return {'error': str(e)}, 400 

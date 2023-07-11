@@ -1,5 +1,9 @@
 import os
 import logging
+import openai
+import json
+from PIL import Image
+import pytesseract
 from pypdf import PdfReader
 from rq import Retry
 
@@ -13,6 +17,7 @@ from andes.models import Document, DocumentChatHistory
 from andes.utils.config import UPLOAD_DIRECTORY
 from andes.services.serialization import pickle_dump, pickle_load
 from andes.services.rq import QUEUES
+from andes.schemas.extraction_config import ExtractionConfigSchema
 
 
 def create_document(filename: str):
@@ -43,14 +48,24 @@ def get_document(id: str):
     return doc
 
 
-def _split_pdf(fpath: str, chunk_size=4000, chunk_overlap=50) -> list[str]:
+def _run_ocr(fpath: str) -> str:
+    """
+    Perform OCR on a PDF or Image file
+    """
+    if fpath.lower().endswith('pdf'):
+        reader = PdfReader(fpath)
+        raw_document_text = '\n\n'.join([page.extract_text() for page in reader.pages])
+    else:
+        image = Image.open(fpath)
+        raw_document_text = pytesseract.image_to_string(image)
+
+    return raw_document_text
+
+
+def _split_pdf(raw_document_text: str, chunk_size=4000, chunk_overlap=50) -> list[str]:
     """
     Pre-process PDF into chunks
     """
-    reader = PdfReader(fpath)
-    raw_document_text = '\n\n'.join([page.extract_text() for page in reader.pages])
-
-    # split text into chunks
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size = chunk_size,
         chunk_overlap  = chunk_overlap,
@@ -70,7 +85,15 @@ def create_index(doc: Document):
     logging.info(f"Started creating index for {doc.filename}")
 
     filepath = os.path.join(UPLOAD_DIRECTORY, doc.id, doc.filename)
-    doc_splits = _split_pdf(filepath)
+    raw_document_text = _run_ocr(filepath)
+
+    # save the raw document text to disk
+    raw_document_text_path = os.path.join(UPLOAD_DIRECTORY, doc.id, 'raw_document_text.txt')
+    with open(raw_document_text_path, 'w') as f:
+        f.write(raw_document_text)
+
+    # split the document into chunks
+    doc_splits = _split_pdf(raw_document_text)
 
     # create a langchain index for each chunk
     logging.info(f"Building index for {doc.filename}")
@@ -131,3 +154,51 @@ def chat(doc: Document, message: str) -> str:
     ).save()
 
     return response['answer']
+
+
+def extract(doc: Document, config: ExtractionConfigSchema) -> str:
+    # query openai on the langchain index
+
+    # sanity checks
+    if not os.path.exists(os.path.join(UPLOAD_DIRECTORY, doc.id, 'index.pkl')):
+        raise ValueError("Index does not exist for this document")
+    
+    assert config is not None, "Extraction config cannot be empty"
+
+    # load OCR text from disk
+    raw_document_text_path = os.path.join(UPLOAD_DIRECTORY, doc.id, 'raw_document_text.txt')
+    with open(raw_document_text_path, 'r') as f:
+        raw_document_text = f.read()
+
+    # create functions to call using the config
+    functions = [
+        {
+            'name': 'extract_all_key_information',
+            'description': 'Extract all key information from the document',
+            'parameters': {
+                'type': 'object',
+                # create a schema from the config
+                'properties': {
+                    x['label'] : {'type': 'string'} for x in config['entities']
+                }
+            }
+        }
+    ]
+
+    # function calling using GPT 4
+    response = openai.ChatCompletion.create(
+        model = 'gpt-4',
+        messages = [{'role': 'user', 'content': raw_document_text}],
+        functions = functions,
+        function_call = 'auto'
+    )
+    
+    response = response['choices'][0]['message']
+
+    # save raw response to disk
+    raw_response_path = os.path.join(UPLOAD_DIRECTORY, doc.id, 'raw_openai_response.txt')
+    with open(raw_response_path, 'w') as f:
+        f.write(str(response))
+
+    # parse function call input
+    return json.loads(response['function_call']['arguments'])

@@ -16,10 +16,18 @@ class Document(db.Model):
     __tablename__ = 'document'
 
     id = db.Column(db.String(), primary_key=True, default=generate_uuid)
+    extension = db.Column(db.String(), nullable=False, default='pdf')
     filename = db.Column(db.String(), nullable=False)
     page_count = db.Column(db.Integer, nullable=True)
     info = db.Column(db.JSON, default={})
     chats: Mapped[List["DocumentChatHistory"]] = relationship()
+
+    # add validation to extension   
+    @db.validates('extension')
+    def validate_extension(self, key, value):
+        if value not in ['pdf', 'png', 'jpg', 'jpeg']:
+            raise ValueError(f'Invalid extension {value}')
+        return value
 
     def __repr__(self):
         # include id and filename in the string representation
@@ -37,6 +45,7 @@ class Document(db.Model):
     def to_dict(self):
         return {
             'id': self.id,
+            'extension': self.extension,
             'filename': self.filename,
             'page_count': self.page_count,
             'info': self.info

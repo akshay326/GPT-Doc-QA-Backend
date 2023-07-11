@@ -3,6 +3,12 @@
 - http://13.52.22.190:8000/test
 - keys saved at `/home/ubuntu/andes-backend/.env`
 
+## Installation
+```
+pip install -r requirements.txt
+sudo apt install tesseract-ocr
+sudo apt install libtesseract-dev
+```
 
 ## port mapping
 - 8000: server
@@ -11,6 +17,7 @@
 ## Starting Up
 - python run.py
 - python run_workers.py
+- nohup python run_workers.py &> ~/workers.log &
 
 
 ## Redis Setup

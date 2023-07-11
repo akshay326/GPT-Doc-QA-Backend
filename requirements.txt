@@ -14,3 +14,5 @@ prometheus-client==0.17.0
 slack_sdk==3.21.3
 flask_restx==1.1.0
 beautifulsoup4==4.12.2
+Pillow==10.0.0
+pytesseract==0.3.10
