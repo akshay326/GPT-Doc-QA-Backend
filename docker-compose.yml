@@ -1,0 +1,14 @@
+# docker compose file to run flask backend at port 8000
+version: '3'
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: DockerfileServer
+    ports:
+      - "8000:8000"
+    environment:
+      - ENV=PROD
+      - AWS_ACCESS_KEY_ID=XXXXXXXXXXXXXXXXXXXX
+      - AWS_SECRET_ACCESS_KEY=XXXXXXXXXXXXXXXXXXXX
+    command: python3 run.py

@@ -1,13 +1,16 @@
 # andes-backend
 - runs on python 3.10.9
 - http://13.52.22.190:8000/test
-- keys saved at `/home/ubuntu/andes-backend/.env`
 
-## Installation
-```
-pip install -r requirements.txt
-sudo apt install tesseract-ocr
-sudo apt install libtesseract-dev
+## Setup
+- Clone the repository
+- Install docker
+- Install docker-compose
+- Replace your AWS access key and secret key in the docker-compose.yml file
+- Execute the following commands:
+``` 
+cd ~/andes-backend
+./run-server.sh
 ```
 
 ## port mapping

@@ -1,0 +1,10 @@
+FROM python:3.9-slim-buster
+WORKDIR /app
+COPY ./requirements.txt /app
+
+# installations
+RUN pip install -r requirements.txt
+RUN apt-get update && apt-get install software-properties-common -y
+RUN apt install tesseract-ocr libtesseract-dev -y
+
+COPY . .
