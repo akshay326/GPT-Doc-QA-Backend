@@ -11,4 +11,6 @@ services:
       - ENV=PROD
       - AWS_ACCESS_KEY_ID=XXXXXXXXXXXXXXXXXXXX
       - AWS_SECRET_ACCESS_KEY=XXXXXXXXXXXXXXXXXXXX
+      - DB_PATH=sqlite:////tmp/app.db
+      - UPLOAD_DIRECTORY=/app/uploads
     command: python3 run.py

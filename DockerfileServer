@@ -3,8 +3,9 @@ WORKDIR /app
 COPY ./requirements.txt /app
 
 # installations
-RUN pip install -r requirements.txt
 RUN apt-get update && apt-get install software-properties-common -y
+RUN apt-get install python3-dev build-essential pkg-config -y
 RUN apt install tesseract-ocr libtesseract-dev -y
+RUN pip install -r requirements.txt
 
 COPY . .
