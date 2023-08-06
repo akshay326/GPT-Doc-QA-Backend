@@ -17,3 +17,4 @@ beautifulsoup4==4.12.2
 Pillow==10.0.0
 pytesseract==0.3.10
 boto3==1.18.63
+redis-server==6.0.9

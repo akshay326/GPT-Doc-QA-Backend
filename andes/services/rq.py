@@ -10,5 +10,5 @@ QUEUES = {
 }
 
 for queue_name in QUEUES:
-    QUEUES[queue_name] = Queue(queue_name, connection=Redis())
+    QUEUES[queue_name] = Queue(queue_name, connection=Redis('redis_service'))
     logging.info(f"Starting {queue_name}")

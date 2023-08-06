@@ -1,0 +1,12 @@
+# common.yml
+version: '3'
+services:
+  common_service_env:
+    environment:
+      - ENV=PROD
+      - OPENAI_API_KEY=<<REPLACE_ME>>
+      - AWS_ACCESS_KEY_ID=<<REPLACE_ME>>
+      - AWS_SECRET_ACCESS_KEY=<<REPLACE_ME>>
+      - AWS_DEFAULT_REGION=us-east-1
+      - DB_PATH=sqlite:////local_storage/app.db
+      - UPLOAD_DIRECTORY=/local_storage/uploads

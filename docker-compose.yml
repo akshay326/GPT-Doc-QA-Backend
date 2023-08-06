@@ -1,16 +1,39 @@
 # docker compose file to run flask backend at port 8000
 version: '3'
 services:
-  backend:
+  # start redis
+  redis_service:
+    image: redis
+    ports:
+      - "6379:6379"
+
+  # start workers
+  worker_service:
+    extends:
+      file: common.yml
+      service: common_service_env
+    depends_on:
+      - redis_service
+    build:
+      context: .
+      dockerfile: DockerfileServer
+    command: python3 run_workers.py
+    volumes:
+      - /home/ubuntu:/local_storage
+
+  # make backend depend on workers
+  backend_service:
+    extends:
+      file: common.yml
+      service: common_service_env
+    depends_on:
+      - worker_service
     build:
       context: .
       dockerfile: DockerfileServer
     ports:
       - "8000:8000"
-    environment:
-      - ENV=PROD
-      - AWS_ACCESS_KEY_ID=XXXXXXXXXXXXXXXXXXXX
-      - AWS_SECRET_ACCESS_KEY=XXXXXXXXXXXXXXXXXXXX
-      - DB_PATH=sqlite:////tmp/app.db
-      - UPLOAD_DIRECTORY=/app/uploads
     command: python3 run.py
+    # save all uploads to local folder
+    volumes:
+      - /home/ubuntu:/local_storage
