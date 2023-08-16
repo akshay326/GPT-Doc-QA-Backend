@@ -1,4 +1,4 @@
-from flask import request, jsonify
+from flask import request, jsonify, Response
 from flask_restx import Resource, Namespace
 from werkzeug.utils import secure_filename
 from andes.services import document_service
@@ -20,12 +20,12 @@ class Document(Resource):
     @track_requests
     def post(self):
         if 'file' not in request.files:
-            return jsonify({'error': 'No file part in the request'}), 400
+            return Response(status=400, response='No file part in the request')
 
         file = request.files['file']
 
         if file.filename == '':
-            return jsonify({'error': 'No file selected for uploading'}), 400
+            return Response(status=400, response='No file selected for uploading')
 
         filename = secure_filename(file.filename)
 
@@ -33,7 +33,7 @@ class Document(Resource):
             # create an empty document object in DB
             doc = document_service.create_document(filename)
         except Exception as e:
-            return {'error': str(e)}, 400
+            return Response(status=400, response=str(e))
 
         # save the file to the uploads folder
         document_service.save_file(doc, file)
@@ -106,4 +106,4 @@ class DocumentExtract(Resource):
             response = document_service.extract(doc, config)
             return response
         except Exception as e:
-            return {'error': str(e)}, 400 
+            return Response(status=400, response=str(e))
