@@ -1,3 +1,6 @@
+# stop redis on host if running
+sudo systemctl status redis
+
 # first stop existing docker compose containers
 docker compose down
 
