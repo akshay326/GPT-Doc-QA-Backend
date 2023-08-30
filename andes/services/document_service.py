@@ -1,4 +1,5 @@
 import os
+import boto3
 import logging
 import openai
 import json
@@ -18,6 +19,9 @@ from andes.utils.config import UPLOAD_DIRECTORY
 from andes.services.serialization import pickle_dump, pickle_load
 from andes.services.rq import QUEUES
 from andes.schemas.extraction_config import ExtractionConfigSchema
+
+S3_BUCKET = 'andes-chat-documents'
+s3 = boto3.client('s3')
 
 
 def create_document(filename: str):
@@ -91,6 +95,15 @@ def create_index(doc: Document):
     raw_document_text_path = os.path.join(UPLOAD_DIRECTORY, doc.id, 'raw_document_text.txt')
     with open(raw_document_text_path, 'w') as f:
         f.write(raw_document_text)
+
+    # upload the file to s3
+    file_name = f'{doc.id}.pdf'
+    s3.upload_file(filepath, S3_BUCKET, file_name,
+        ExtraArgs={
+            'ContentType': 'application/pdf',
+            'ContentDisposition': 'inline'
+        }
+    )
 
     # split the document into chunks
     doc_splits = _split_pdf(raw_document_text)
