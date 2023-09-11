@@ -1,6 +1,6 @@
-# andes-backend
-- runs on python 3.10.9
-- http://13.52.22.190:8000/test
+# Document QA 
+- This repository contains Python code to demonstrate Andes' ability to run Question Answering over documents
+- Runs on python 3.10.9
 
 ## Setup
 - Clone the repository
@@ -13,21 +13,19 @@ cd ~/andes-backend
 ./run-server.sh
 ```
 
-## port mapping
+## Port mapping
 - 8000: server
 - 3000: graphana
 
 ## Starting Up
-- python run.py
-- python run_workers.py
-- nohup python run_workers.py &> ~/workers.log &
-
+- `python run.py`
+- `python run_workers.py`
 
 ## Redis Setup
 - install redis
-    sudo apt-get install redis-server
+    `sudo apt-get install redis-server`
 - start redis CLI / does not seems to work
-    rq worker --with-scheduler index_gen
+    `rq worker --with-scheduler index_gen`
 
 
 ## Setup Graphana and Prometheus
