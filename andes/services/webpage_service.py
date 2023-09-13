@@ -7,13 +7,22 @@ from bs4 import BeautifulSoup
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.llms import OpenAI
 from langchain.vectorstores import FAISS
-from langchain.chains import ConversationalRetrievalChain
+from langchain.chains import RetrievalQA
+from langchain.prompts import PromptTemplate
 from langchain.embeddings.openai import OpenAIEmbeddings
 
 from andes.models import WebPage, WebPageChatHistory
 from andes.utils.config import UPLOAD_DIRECTORY
 from andes.services.serialization import pickle_dump, pickle_load
 from andes.services.rq import QUEUES
+from andes.prompts import FIN_QA_PROMPT
+
+
+QA_PROMPT = PromptTemplate(
+    template=FIN_QA_PROMPT, 
+    input_variables=["context", 'question'],
+    template_format='jinja2'
+)
 
 
 def create_webpage(url: str):
@@ -132,31 +141,24 @@ def chat(page: WebPage, message: str) -> str:
     index_path = os.path.join(UPLOAD_DIRECTORY, page.id, 'index.pkl')
     index = pickle_load(index_path)
 
-    # load the chat history from webpage
-    chat_history = page.chat_history()
-
-    # format the history
-    chat_history = [
-        (
-        chat['question'],
-        chat['answer']
-        ) for chat in chat_history
-    ]
-
-    qa = ConversationalRetrievalChain.from_llm(
+    # create a chain
+    qa = RetrievalQA.from_chain_type(
         OpenAI(temperature=0), 
-        index.as_retriever()
+        chain_type="stuff", 
+        retriever=index.as_retriever(),
+        chain_type_kwargs={
+            "prompt": QA_PROMPT
+        }
     )
-    response = qa({
-        "question": message, 
-        "chat_history": chat_history
-    })
+
+    # query GPT
+    response = qa.run(message)
 
     # save the chat history
     WebPageChatHistory(
         webpage_id = page.id,
         question = message,
-        answer = response['answer']
+        answer = response
     ).save()
 
-    return response['answer']
+    return response

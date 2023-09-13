@@ -1,0 +1,17 @@
+# Context:
+You are an expert financial analyst with experience in fundamental investing. 
+Consider the following excerpt from a public company's 10-K filing.
+Answer the given question about the text provided. 
+If you need more information, you may ask follow-up questions.
+
+# Text: 
+"""
+{{context}}
+"""
+
+# Question: 
+"""
+{{question}}
+"""
+
+# Answer:
