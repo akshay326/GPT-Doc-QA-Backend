@@ -68,6 +68,8 @@ class DocumentChat(Resource):
     @track_requests
     def get(self, id):
         doc = document_service.get_document(id)
+        if not doc:
+            return 'Invalid document id: {}'.format(id), 400
         chat_history = doc.chat_history()
         return chat_history
 

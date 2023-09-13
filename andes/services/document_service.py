@@ -7,6 +7,7 @@ from PIL import Image
 import pytesseract
 from pypdf import PdfReader
 from rq import Retry
+from typing import Union
 
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.llms import OpenAI
@@ -44,12 +45,11 @@ def save_file(doc: Document, file):
     return filepath
 
 
-def get_document(id: str):
+def get_document(id: str) -> Union[Document, None]:
     """
     get Document sqlalchemy model object
     """
-    doc = Document.query.get(id)
-    return doc
+    return Document.query.get(id)
 
 
 def _run_ocr(fpath: str) -> str:
